@@ -1,15 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-require('./db')
-const app = express();
 const db = require('./models')
-const Role = db.Role;
+const Role = db.role;
+const app = express();
+
 var corsOptions = {
   origin: "http://localhost:8081"
 };
-const auth = require('./routes/auth.routes');
-const user = require('./routes/user.routes');
 
 app.use(cors(corsOptions));
 
@@ -18,8 +16,12 @@ app.use(bodyParser.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/api/auth',auth);
-app.use('//api/test',user);
+
+// simple route
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to bezkoder application." });
+});
+
 function initial() {
   Role.create({
     id: 1,
@@ -36,14 +38,13 @@ function initial() {
     name: "admin"
   });
 }
-// simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome User." });
-});
 db.sequelize.sync({force: true}).then(() => {
   console.log('Drop and Resync Db');
-  initial();
+   initial();
 });
+// routes
+require('./routes/auth.routes')(app);
+require('./routes/user.routes')(app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
